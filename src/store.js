@@ -20,12 +20,16 @@ export const state = reactive({
   favorites: read(KEYS.fav, []),
   recent: read(KEYS.recent, []),
   progress: read(KEYS.progress, {}),
-  settings: read(KEYS.settings, { night: false, fontSize: 21, tip: false })
+  settings: read(KEYS.settings, { night: false, fontSize: 16, tip: false })
 })
 
 // 故事列表（运行时从 JSON 加载）
 export const stories = ref([])
 export const loaded = ref(false)
+
+// 首页点击分类卡片时，传递“待选中分类”给分类页（用于锚点跳转）
+export const pendingCat = ref(null)
+export function setPendingCat(id) { pendingCat.value = id }
 
 export function loadStories() {
   return Promise.all(

@@ -34,7 +34,7 @@
     <!-- 好习惯分类 -->
     <div class="sec-title"><h3>按好习惯找故事</h3><span class="more" @click="goTab('categories')">更多</span></div>
     <div class="cat-grid">
-      <CategoryCard v-for="c in firstCats" :key="c.id" :cat="c" :count="countByCat[c.id] || 0" @select="goTab('categories')" />
+      <CategoryCard v-for="c in firstCats" :key="c.id" :cat="c" :count="countByCat[c.id] || 0" @select="openCategory" />
     </div>
 
     <div class="sec-title"><h3>全部故事</h3><span class="more" @click="goTab('categories')">{{ stories.length }} 篇</span></div>
@@ -46,11 +46,14 @@ import { computed, inject } from 'vue'
 import IconSvg from '../components/IconSvg.vue'
 import StoryCard from '../components/StoryCard.vue'
 import CategoryCard from '../components/CategoryCard.vue'
-import { stories, state, saveSettings } from '../store.js'
+import { stories, state, saveSettings, setPendingCat } from '../store.js'
 import { CATS, catName, catColor } from '../data/categories.js'
 
 const open = inject('openStory')
 const goTab = inject('goTab')
+
+// 首页点分类卡片：记下待选中分类，跳到分类页后自动选中并锚点跳转
+function openCategory(id) { setPendingCat(id); goTab('categories') }
 
 const countByCat = computed(() => {
   const m = {}
