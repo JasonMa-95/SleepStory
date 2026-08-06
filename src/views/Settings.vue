@@ -38,6 +38,7 @@
     <div class="card about">
       <div class="about-line">晚安故事屋 v2.0 · Vue 3 + PWA</div>
       <div class="about-line">已收录 {{ stories.length }} 个原创睡前故事</div>
+      <div class="about-line">版本时间：{{ buildTime }}</div>
       <div class="about-line">数据保存在本机浏览器，不上传服务器</div>
     </div>
 
@@ -56,12 +57,16 @@
 </template>
 
 <script setup>
-import { ref, inject } from 'vue'
+import { ref, computed } from 'vue'
 import IconSvg from '../components/IconSvg.vue'
 import { state, stories, applyNight, saveSettings, exportBackup, importBackup, clearAll } from '../store.js'
 
 const fileInput = ref(null)
 const showClear = ref(false)
+const buildTime = computed(() => {
+  const t = typeof __APP_BUILD_TIME__ !== 'undefined' ? __APP_BUILD_TIME__ : 0
+  return t ? new Date(t).toLocaleString('zh-CN') : '开发环境'
+})
 
 function toggleNight() { state.settings.night = !state.settings.night; applyNight() }
 function dec() { saveSettings({ fontSize: Math.max(16, state.settings.fontSize - 2) }) }

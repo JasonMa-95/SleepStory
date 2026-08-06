@@ -5,10 +5,13 @@ import { VitePWA } from 'vite-plugin-pwa'
 // 相对路径 base，保证子路径部署也不挂
 export default defineConfig({
   base: './',
+  define: {
+    __APP_BUILD_TIME__: JSON.stringify(Date.now())
+  },
   plugins: [
     vue(),
     VitePWA({
-      registerType: 'autoUpdate',          // 改完故事重新部署，用户手机自动更新
+      registerType: 'prompt',              // 手动控制更新时机，显示「刷新」按钮由用户确认
       includeAssets: ['icon-192.png', 'icon-512.png'],
       manifest: {
         name: '晚安故事屋',

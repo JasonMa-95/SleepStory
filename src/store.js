@@ -31,10 +31,12 @@ export const loaded = ref(false)
 export const pendingCat = ref(null)
 export function setPendingCat(id) { pendingCat.value = id }
 
+const CACHE_BUST = typeof __APP_BUILD_TIME__ !== 'undefined' ? `?v=${__APP_BUILD_TIME__}` : ''
+
 export function loadStories() {
   return Promise.all(
     STORY_FILES.map(f =>
-      fetch(`./stories/${f}.json`).then(r => r.ok ? r.json() : { stories: [] })
+      fetch(`./stories/${f}.json${CACHE_BUST}`).then(r => r.ok ? r.json() : { stories: [] })
         .catch(() => ({ stories: [] }))
     )
   ).then(arrs => {

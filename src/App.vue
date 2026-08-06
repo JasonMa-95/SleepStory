@@ -9,6 +9,12 @@
     </button>
   </div>
 
+  <!-- 发现新版本提示 -->
+  <div v-if="swNeedRefresh" class="update-bar">
+    <span>发现新版本（{{ stories.length }} 篇故事），点击刷新获取最新内容</span>
+    <button @click="doReload">立即刷新</button>
+  </div>
+
   <main class="main">
     <div v-if="!loaded" class="loading">🌙 正在点亮小星星…</div>
     <Home v-else-if="view === 'home'" class="view" />
@@ -29,6 +35,7 @@
 <script setup>
 import { ref, onMounted, provide, computed } from 'vue'
 import { state, loaded, stories, loadStories, applyNight, addRecent, storyById } from './store.js'
+import { swNeedRefresh, swUpdateFn } from './main.js'
 import IconSvg from './components/IconSvg.vue'
 import Home from './views/Home.vue'
 import Categories from './views/Categories.vue'
@@ -49,6 +56,10 @@ const tabs = [
 const currentStory = computed(() => storyById(readerId.value))
 
 function go(v) { lastTab.value = v; view.value = v; window.scrollTo(0, 0) }
+function doReload() {
+  if (swUpdateFn.value) swUpdateFn.value(true)
+  else window.location.reload()
+}
 function openStory(id) {
   if (view.value !== 'reader') lastTab.value = view.value
   addRecent(id); readerId.value = id; view.value = 'reader'; window.scrollTo(0, 0)
@@ -62,3 +73,30 @@ provide('goTab', go)
 
 onMounted(() => { applyNight(); loadStories() })
 </script>
+
+<style scoped>
+.update-bar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: #FFF8E8;
+  border-bottom: 1px solid #FFE4C2;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+  color: #8B5A2B;
+}
+.update-bar button {
+  flex-shrink: 0;
+  background: #E8915F;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+}
+</style>
