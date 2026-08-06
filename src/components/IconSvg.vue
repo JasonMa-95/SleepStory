@@ -36,7 +36,19 @@ const P = {
   shield:  '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3Z"/>',
   download:'<path d="M12 3v12M7 11l5 5 5-5M4 21h16"/>',
   upload:  '<path d="M12 21V9M7 13l5-5 5 5M4 3h16"/>',
-  trash:   '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>'
+  trash:   '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',
+  school:  '<path d="M3 10 12 4l9 6M5 10v9h14v-9M9 19v-5h6v5M12 4V2"/>',
+  flag:    '<path d="M5 21V4M5 4h11l-2 3 2 3H5"/>',
+  friends: '<circle cx="8" cy="8" r="2.5"/><circle cx="16" cy="9" r="2.5"/><path d="M3 20c0-3 2.5-5 5-5s5 2 5 5M14 20c0-2.5 2-4 4-4s3 1.5 3 4"/>',
+  peace:   '<circle cx="12" cy="12" r="9"/><path d="M12 3v18M12 12 4.5 7M12 12l7.5-5"/>',
+  chat:    '<path d="M4 5h16v10H9l-4 4V5Z"/>',
+  mic:     '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M8 21h8"/>',
+  puzzle:  '<path d="M10 4h4a2 2 0 0 1 2 2v2h3v4h-3v2a2 2 0 0 1-2 2h-2v3h-4v-3H5v-4h3v-2a2 2 0 0 1 2-2V6a2 2 0 0 1 2-2Z"/>',
+  hug:     '<circle cx="8" cy="9" r="2.5"/><circle cx="16" cy="9" r="2.5"/><path d="M4 15c2 3 4 3 4 3M20 15c-2 3-4 3-4 3"/>',
+  shoe:    '<path d="M3 15h12a5 5 0 0 1 6-2v-1H7l-4 3Z"/>',
+  soap:    '<rect x="5" y="9" width="11" height="8" rx="2"/><path d="M16 11h3v4h-3M8 9V6a2 2 0 0 1 4 0"/>',
+  flower:  '<circle cx="12" cy="12" r="2"/><circle cx="12" cy="7.5" r="2"/><circle cx="12" cy="16.5" r="2"/><circle cx="7.5" cy="12" r="2"/><circle cx="16.5" cy="12" r="2"/>',
+  hourglass:'<path d="M7 4h10M7 20h10M7 4c0 5 5 5 5 10M17 4c0 5-5 5-5 10M7 20c0-5 5-5 5-10M17 20c0-5-5-5-5-10"/>'
 }
 const svg = computed(() => P[props.name] || '')
 </script>

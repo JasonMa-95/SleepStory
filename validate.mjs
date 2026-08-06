@@ -11,7 +11,11 @@ const expectCat = {
   'base.json': null, // 原故事含多分类
   'honest.json': 'honest', 'courage.json': 'courage', 'responsibility.json': 'responsibility',
   'study.json': 'study', 'life.json': 'life', 'time.json': 'time',
-  'friendship.json': 'friendship', 'science.json': 'science'
+  'friendship.json': 'friendship', 'science.json': 'science',
+  'kinder.json': 'kinder', 'rules.json': 'rules', 'social.json': 'social',
+  'conflict.json': 'conflict', 'manners.json': 'manners', 'express.json': 'express',
+  'cooperate.json': 'cooperate', 'selfsafe.json': 'selfsafe', 'empathy.json': 'empathy',
+  'indep.json': 'indep', 'hyg.json': 'hyg', 'thanks.json': 'thanks', 'patience.json': 'patience'
 }
 
 for (const f of files) {
@@ -29,8 +33,8 @@ for (const f of files) {
     else if (exp && s.category !== exp) errors.push(`${at}(${s.id}): category=${s.category} 应为 ${exp}`)
     if (typeof s.minutes !== 'number') errors.push(`${at}(${s.id}): minutes 非数字`)
     if (!Array.isArray(s.tags) || s.tags.length < 1) errors.push(`${at}(${s.id}): tags 异常`)
-    if (!Array.isArray(s.paras) || s.paras.length < 4 || s.paras.length > 6)
-      errors.push(`${at}(${s.id}): paras 应为4-6段，实际 ${Array.isArray(s.paras) ? s.paras.length : '非数组'}`)
+    if (!Array.isArray(s.paras) || s.paras.length < 4 || s.paras.length > 8)
+      errors.push(`${at}(${s.id}): paras 应为4-8段，实际 ${Array.isArray(s.paras) ? s.paras.length : '非数组'}`)
     else if (!s.paras[s.paras.length - 1].includes('晚安'))
       errors.push(`${at}(${s.id}): 末段缺少「晚安」`)
     if (s.id) {
