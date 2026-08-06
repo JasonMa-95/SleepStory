@@ -27,7 +27,7 @@
 
     <!-- 最近阅读 -->
     <template v-if="recentStories.length">
-      <div class="sec-title"><h3>最近读过</h3><span class="more" @click="goTab('favorites')">我的收藏</span></div>
+      <div class="sec-title"><h3>最近读过</h3><span class="more" @click="goTab('read')">全部已读</span></div>
       <StoryCard v-for="s in recentStories" :key="s.id" :story="s" @open="open" />
     </template>
 

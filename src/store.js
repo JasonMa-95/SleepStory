@@ -5,7 +5,8 @@ const KEYS = {
   fav: 'wb_sleep_fav',
   recent: 'wb_sleep_recent',
   progress: 'wb_sleep_progress',
-  settings: 'wb_sleep_settings'
+  settings: 'wb_sleep_settings',
+  read: 'wb_sleep_read'
 }
 
 function read(key, def) {
@@ -20,7 +21,8 @@ export const state = reactive({
   favorites: read(KEYS.fav, []),
   recent: read(KEYS.recent, []),
   progress: read(KEYS.progress, {}),
-  settings: read(KEYS.settings, { night: false, fontSize: 16, tip: false })
+  settings: read(KEYS.settings, { night: false, fontSize: 16, tip: false }),
+  readAt: read(KEYS.read, {}) // 已读记录：{ [storyId]: 时间戳 }
 })
 
 // 故事列表（运行时从 JSON 加载）
@@ -70,6 +72,21 @@ export function addRecent(id) {
   write(KEYS.recent, state.recent)
 }
 
+// ===== 已读记录（完整阅读历史，不限额） =====
+export const isRead = id => !!state.readAt[id]
+export function markRead(id) {
+  if (!id) return
+  state.readAt[id] = Date.now()
+  write(KEYS.read, state.readAt)
+}
+// 已读列表：按阅读时间倒序返回故事对象
+export function readList() {
+  return Object.keys(state.readAt)
+    .sort((a, b) => state.readAt[b] - state.readAt[a])
+    .map(id => storyById(id))
+    .filter(Boolean)
+}
+
 // ===== 阅读进度（自动记录滚动位置） =====
 export const getProgress = id => state.progress[id] || null
 export function setProgress(id, p) {
@@ -97,7 +114,8 @@ export function exportBackup() {
     favorites: state.favorites,
     recent: state.recent,
     progress: state.progress,
-    settings: state.settings
+    settings: state.settings,
+    readAt: state.readAt
   }
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
   const a = document.createElement('a')
@@ -112,9 +130,10 @@ export function importBackup(text) {
   if (Array.isArray(d.recent)) { state.recent = d.recent; write(KEYS.recent, state.recent) }
   if (d.progress && typeof d.progress === 'object') { state.progress = d.progress; write(KEYS.progress, d.progress) }
   if (d.settings && typeof d.settings === 'object') { state.settings = d.settings; write(KEYS.settings, d.settings); applyNight() }
+  if (d.readAt && typeof d.readAt === 'object') { state.readAt = d.readAt; write(KEYS.read, state.readAt) }
   return true
 }
 export function clearAll() {
-  state.favorites = []; state.recent = []; state.progress = {}
-  write(KEYS.fav, []); write(KEYS.recent, []); write(KEYS.progress, {})
+  state.favorites = []; state.recent = []; state.progress = {}; state.readAt = {}
+  write(KEYS.fav, []); write(KEYS.recent, []); write(KEYS.progress, {}); write(KEYS.read, {})
 }

@@ -9,7 +9,10 @@
     </div>
 
     <h1 class="rtitle">{{ story.title }}</h1>
-    <div class="rmeta">⏱ 约 {{ story.minutes }} 分钟 · {{ (story.tags || []).join(' · ') }}</div>
+    <div class="rmeta">
+      <span>⏱ 约 {{ story.minutes }} 分钟 · {{ (story.tags || []).join(' · ') }}</span>
+      <span class="read-pill" v-if="isRead(story.id)"><IconSvg name="check" :size="13" /> 已读</span>
+    </div>
 
     <article>
       <p v-for="(p, i) in story.paras" :key="i" :class="{ end: i === story.paras.length - 1 }">{{ p }}</p>
@@ -29,7 +32,7 @@
 <script setup>
 import { onMounted, onUnmounted, nextTick, inject } from 'vue'
 import IconSvg from '../components/IconSvg.vue'
-import { state, getProgress, setProgress, isFav, toggleFav, saveSettings } from '../store.js'
+import { state, getProgress, setProgress, isFav, toggleFav, saveSettings, isRead } from '../store.js'
 import { catName } from '../data/categories.js'
 
 const props = defineProps({ story: Object })
@@ -60,6 +63,9 @@ function inc() { saveSettings({ fontSize: Math.min(32, state.settings.fontSize +
 .rmeta{font-size:13px;color:var(--text2);margin-bottom:18px}
 article p{font-size:var(--fs);line-height:2;color:var(--text);margin-bottom:18px;text-align:justify;letter-spacing:.3px}
 article p.end{color:var(--deep);font-weight:600}
+.rmeta{font-size:13px;color:var(--text2);margin-bottom:18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.read-pill{display:inline-flex;align-items:center;gap:3px;font-size:12px;font-weight:700;color:var(--ok);
+  background:color-mix(in srgb,var(--ok) 16%,transparent);padding:2px 9px;border-radius:999px}
 .reader-end{text-align:center;color:var(--primary);font-weight:700;font-size:16px;margin:10px 0 24px}
 .fs-bar{position:sticky;bottom:calc(var(--tabbar-h) + 10px);display:flex;align-items:center;justify-content:center;gap:14px;
   background:color-mix(in srgb,var(--card) 95%,transparent);backdrop-filter:blur(8px);

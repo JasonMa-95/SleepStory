@@ -20,6 +20,7 @@
     <Home v-else-if="view === 'home'" class="view" />
     <Categories v-else-if="view === 'categories'" class="view" />
     <Favorites v-else-if="view === 'favorites'" class="view" />
+    <Read v-else-if="view === 'read'" class="view" />
     <Settings v-else-if="view === 'settings'" class="view" />
     <Reader v-else-if="view === 'reader'" class="view" :story="currentStory" />
   </main>
@@ -34,12 +35,13 @@
 
 <script setup>
 import { ref, onMounted, provide, computed } from 'vue'
-import { state, loaded, stories, loadStories, applyNight, addRecent, storyById } from './store.js'
+import { state, loaded, stories, loadStories, applyNight, addRecent, markRead, storyById } from './store.js'
 import { swNeedRefresh, swUpdateFn } from './main.js'
 import IconSvg from './components/IconSvg.vue'
 import Home from './views/Home.vue'
 import Categories from './views/Categories.vue'
 import Favorites from './views/Favorites.vue'
+import Read from './views/Read.vue'
 import Settings from './views/Settings.vue'
 import Reader from './views/Reader.vue'
 
@@ -50,6 +52,7 @@ const tabs = [
   { id: 'home', name: '首页', icon: 'home' },
   { id: 'categories', name: '分类', icon: 'grid' },
   { id: 'favorites', name: '收藏', icon: 'star' },
+  { id: 'read', name: '读过', icon: 'check' },
   { id: 'settings', name: '我的', icon: 'settings' }
 ]
 
@@ -62,7 +65,7 @@ function doReload() {
 }
 function openStory(id) {
   if (view.value !== 'reader') lastTab.value = view.value
-  addRecent(id); readerId.value = id; view.value = 'reader'; window.scrollTo(0, 0)
+  addRecent(id); markRead(id); readerId.value = id; view.value = 'reader'; window.scrollTo(0, 0)
 }
 function back() { view.value = lastTab.value || 'home'; window.scrollTo(0, 0) }
 function toggleNight() { state.settings.night = !state.settings.night; applyNight() }
