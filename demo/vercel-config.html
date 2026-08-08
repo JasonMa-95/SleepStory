@@ -50,8 +50,8 @@
       <button class="btn-ghost" id="btnSdk">② 用官方 SDK 读取并打印</button>
     </div>
     <div class="hint">
-      在哪拿连接字符串：Vercel 仪表盘 → 该 Global Config → <b>Settings / 创建 Read Token</b>，
-      确认弹窗会给出完整连接字符串（形如 <code>https://global-config.vercel.com/ecfg_xxx?token=yyy</code>）。
+      在哪拿连接字符串：Vercel 仪表盘 → 该 Global Config → 左侧 <b>Tokens → Generate Token</b>，
+      命名后点 Create，确认弹窗会给出完整连接字符串（形如 <code>https://global-config.vercel.com/ecfg_xxx?token=yyy</code>）。
       令牌只显示一次，请复制保存。<br>
       ⚠️ 连接字符串是<b>只读</b>令牌，但会出现在客户端代码里，只适合放非敏感配置（如本例的 <code>greeting</code>）。<br>
       📌 官方说明：SDK 默认 <code>no-store</code>（每次动态拉取，确保最新）；<code>get/getAll</code> 返回<b>不可变对象</b>，要改值先用 <code>clone()</code>；无效 token 或网络错误会<b>抛异常</b>。
