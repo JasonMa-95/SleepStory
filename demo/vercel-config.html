@@ -144,7 +144,9 @@ export async function hasGreeting() {
     try {
       const res = await fetch(conn, { cache: 'no-store' })
       if (!res.ok) throw new Error('HTTP ' + res.status + ' ' + res.statusText)
-      const data = await res.json()
+      const json = await res.json()
+      // 直接 fetch 返回 {digest,updatedAt,items}；SDK 的 getAll() 只返回 items 本身
+      const data = json && json.items !== undefined ? json.items : json
       render(data, 'fetch')
     } catch (e) { showError('fetch', e) }
   })
