@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Vercel Global Config 读取测试</title>
+<style>
+  :root{ --bg:#FFF5E6; --card:#FFFDF7; --text:#5A4232; --text2:#A08062; --primary:#E8915F; --ok:#8FBF8F; --danger:#D98B8B; --line:#F0DCC2; --shadow:0 6px 24px rgba(180,101,63,.12) }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+    background:linear-gradient(180deg,var(--bg),#FDEAD0);color:var(--text);min-height:100vh;padding:24px 16px;line-height:1.6}
+  .wrap{max-width:760px;margin:0 auto}
+  h1{font-size:22px;margin-bottom:4px}
+  .sub{font-size:13px;color:var(--text2);margin-bottom:18px}
+  .card{background:var(--card);border-radius:18px;box-shadow:var(--shadow);padding:18px;margin-bottom:16px}
+  label{display:block;font-size:14px;font-weight:700;margin-bottom:8px}
+  input{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:12px;font-size:14px;
+    font-family:ui-monospace,Menlo,Consolas,monospace;color:var(--text);background:#fff}
+  .btns{display:flex;gap:12px;margin-top:14px;flex-wrap:wrap}
+  button{padding:11px 18px;border-radius:14px;font-size:15px;font-weight:700;border:none;cursor:pointer}
+  .btn-primary{background:linear-gradient(135deg,var(--primary),#F4B183);color:#fff}
+  .btn-ghost{background:var(--bg2,#FDEAD0);color:var(--text)}
+  button:active{transform:scale(.97)}
+  .hint{font-size:12px;color:var(--text2);margin-top:10px;line-height:1.7}
+  .hint code{background:#f3e6d2;padding:1px 6px;border-radius:6px}
+  .greeting{font-size:18px;font-weight:800;color:var(--primary);margin:4px 0 12px}
+  .kv{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+  .pill{background:color-mix(in srgb,var(--ok) 16%,transparent);color:#5a8a5a;font-size:12px;font-weight:700;
+    padding:4px 10px;border-radius:999px}
+  pre{background:#2b2018;color:#f3e6d2;padding:14px;border-radius:12px;overflow:auto;font-size:12.5px;line-height:1.6;max-height:420px}
+  .status{font-size:13px;font-weight:700;margin-bottom:10px}
+  .status.ok{color:#5a8a5a}.status.err{color:var(--danger)}
+  details{margin-top:8px}
+  summary{cursor:pointer;font-size:13px;font-weight:700;color:var(--primary)}
+  details pre{background:#f3e6d2;color:#5A4232;margin-top:10px}
+  .empty{color:var(--text2);font-size:14px;padding:20px 0;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🧪 Vercel Global Config 读取测试</h1>
+  <div class="sub">配置 ID：<code>ecfg_8ocb38stza7vgsetjvuamp1kpwv6</code>（来自你给的仪表盘链接）</div>
+
+  <div class="card">
+    <label for="conn">连接字符串（Connection String）</label>
+    <input id="conn" type="text" autocomplete="off" spellcheck="false"
+      placeholder="https://global-config.vercel.com/ecfg_8ocb38stza7vgsetjvuamp1kpwv6?token=在此粘贴你的token" />
+    <div class="btns">
+      <button class="btn-primary" id="btnFetch">① 直接 fetch 读取并打印</button>
+      <button class="btn-ghost" id="btnSdk">② 用官方 SDK 读取并打印</button>
+    </div>
+    <div class="hint">
+      在哪拿连接字符串：Vercel 仪表盘 → 该 Global Config → <b>Settings / 创建 Read Token</b>，
+      确认弹窗会给出完整连接字符串（形如 <code>https://global-config.vercel.com/ecfg_xxx?token=yyy</code>）。
+      令牌只显示一次，请复制保存。<br>
+      ⚠️ 连接字符串是<b>只读</b>令牌，但会出现在客户端代码里，只适合放非敏感配置（如本例的 <code>greeting</code>）。
+    </div>
+  </div>
+
+  <div class="card" id="result" style="display:none">
+    <div class="status" id="status"></div>
+    <div class="greeting" id="greeting"></div>
+    <div class="kv" id="keys"></div>
+    <pre id="raw"></pre>
+  </div>
+
+  <div class="card">
+    <div class="empty" id="placeholder">填入连接字符串后点上面的按钮，这里会打印获取到的全局配置。</div>
+  </div>
+
+  <details>
+    <summary>③ 如何在「当前 Vue 项目」里使用（Vite 集成参考）</summary>
+    <pre># 1) 安装官方 SDK（当前项目尚未安装）
+#    npm i @vercel/global-config
+
+# 2) 在 .env 里放连接字符串（Vite 用 VITE_ 前缀才暴露给前端）
+#    VITE_GLOBAL_CONFIG="https://global-config.vercel.com/ecfg_8ocb38stza7vgsetjvuamp1kpwv6?token=xxx"
+
+# 3) 新建 src/lib/globalConfig.js
+import { createClient } from '@vercel/global-config'
+const conn = import.meta.env.VITE_GLOBAL_CONFIG
+const client = conn ? createClient(conn) : null
+export async function getGreeting() {
+  if (!client) return null
+  return await client.get('greeting')   // 读单个 key
+}
+export async function getAllConfig() {
+  if (!client) return {}
+  return await client.getAll()          // 读全部
+}
+
+# 4) 在任意组件里调用
+#    import { getGreeting } from '@/lib/globalConfig'
+#    const greeting = await getGreeting()
+
+# 注意：SDK 只能读，写数据要走 Vercel REST API（需 Access Token）。</pre>
+  </details>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id)
+  const connInput = $('conn')
+  const resultBox = $('result')
+  const placeholder = $('placeholder')
+
+  function getConn() {
+    const v = connInput.value.trim()
+    if (!v) { alert('请先粘贴连接字符串'); return null }
+    return v
+  }
+
+  function render(data, method) {
+    resultBox.style.display = 'block'
+    placeholder.style.display = 'none'
+    const keys = Object.keys(data || {})
+    $('status').className = 'status ok'
+    $('status').textContent = `✅ ${method} 读取成功，共 ${keys.length} 个 key`
+    $('greeting').textContent = 'greeting = ' + JSON.stringify(data && data.greeting)
+    $('keys').innerHTML = keys.map(k => `<span class="pill">${k}</span>`).join('')
+    $('raw').textContent = JSON.stringify(data, null, 2)
+  }
+
+  function showError(method, err) {
+    resultBox.style.display = 'block'
+    placeholder.style.display = 'none'
+    $('status').className = 'status err'
+    $('status').textContent = `❌ ${method} 失败：${err && err.message ? err.message : err}`
+    $('greeting').textContent = ''
+    $('keys').innerHTML = ''
+    $('raw').textContent = String(err && err.stack ? err.stack : err)
+  }
+
+  // 方法①：直接 fetch 连接字符串 URL（零依赖，最稳）
+  $('btnFetch').addEventListener('click', async () => {
+    const conn = getConn(); if (!conn) return
+    try {
+      const res = await fetch(conn, { cache: 'no-store' })
+      if (!res.ok) throw new Error('HTTP ' + res.status + ' ' + res.statusText)
+      const data = await res.json()
+      render(data, 'fetch')
+    } catch (e) { showError('fetch', e) }
+  })
+
+  // 方法②：用官方 SDK @vercel/global-config（动态从 CDN 引入，演示“标准用法”）
+  $('btnSdk').addEventListener('click', async () => {
+    const conn = getConn(); if (!conn) return
+    try {
+      const mod = await import('https://esm.sh/@vercel/global-config@latest')
+      const client = mod.createClient(conn)
+      const data = await client.getAll()
+      render(data, 'SDK')
+    } catch (e) { showError('SDK', e) }
+  })
+</script>
+</body>
+</html>
