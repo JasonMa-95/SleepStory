@@ -53,7 +53,8 @@
       在哪拿连接字符串：Vercel 仪表盘 → 该 Global Config → <b>Settings / 创建 Read Token</b>，
       确认弹窗会给出完整连接字符串（形如 <code>https://global-config.vercel.com/ecfg_xxx?token=yyy</code>）。
       令牌只显示一次，请复制保存。<br>
-      ⚠️ 连接字符串是<b>只读</b>令牌，但会出现在客户端代码里，只适合放非敏感配置（如本例的 <code>greeting</code>）。
+      ⚠️ 连接字符串是<b>只读</b>令牌，但会出现在客户端代码里，只适合放非敏感配置（如本例的 <code>greeting</code>）。<br>
+      📌 官方说明：SDK 默认 <code>no-store</code>（每次动态拉取，确保最新）；<code>get/getAll</code> 返回<b>不可变对象</b>，要改值先用 <code>clone()</code>；无效 token 或网络错误会<b>抛异常</b>。
     </div>
   </div>
 
@@ -78,22 +79,29 @@
 
 # 3) 新建 src/lib/globalConfig.js
 import { createClient } from '@vercel/global-config'
-const conn = import.meta.env.VITE_GLOBAL_CONFIG
-const client = conn ? createClient(conn) : null
+const conn = import.meta.env.VITE_GLOBAL_CONFIG   // Vite 不会自动暴露 process.env，必须显式传入
+const client = conn ? createClient(conn) : null   // 默认 client 读 process.env.GLOBAL_CONFIG，浏览器里改用 createClient
 export async function getGreeting() {
   if (!client) return null
-  return await client.get('greeting')   // 读单个 key
+  return await client.get('greeting')   // 读单个 key（README 主示例）
 }
 export async function getAllConfig() {
   if (!client) return {}
-  return await client.getAll()          // 读全部
+  return await client.getAll()          // 读全部；也可 getAll(['greeting','other'])
+}
+export async function hasGreeting() {
+  if (!client) return false
+  return await client.has('greeting')   // 判断 key 是否存在
 }
 
 # 4) 在任意组件里调用
 #    import { getGreeting } from '@/lib/globalConfig'
 #    const greeting = await getGreeting()
 
-# 注意：SDK 只能读，写数据要走 Vercel REST API（需 Access Token）。</pre>
+# 注意：
+#   - SDK 只能读，写数据要走 Vercel REST API（需 Access Token）。
+#   - 默认 no-store（动态获取）；静态页可用 createClient(conn,{cache:'force-cache'})（但可能读到旧值）。
+#   - 返回对象不可变，改值前用 clone()。</pre>
   </details>
 </div>
 
@@ -109,12 +117,12 @@ export async function getAllConfig() {
     return v
   }
 
-  function render(data, method) {
+  function render(data, method, note) {
     resultBox.style.display = 'block'
     placeholder.style.display = 'none'
     const keys = Object.keys(data || {})
     $('status').className = 'status ok'
-    $('status').textContent = `✅ ${method} 读取成功，共 ${keys.length} 个 key`
+    $('status').textContent = `✅ ${method} 读取成功，共 ${keys.length} 个 key` + (note ? ' · ' + note : '')
     $('greeting').textContent = 'greeting = ' + JSON.stringify(data && data.greeting)
     $('keys').innerHTML = keys.map(k => `<span class="pill">${k}</span>`).join('')
     $('raw').textContent = JSON.stringify(data, null, 2)
@@ -141,14 +149,20 @@ export async function getAllConfig() {
     } catch (e) { showError('fetch', e) }
   })
 
-  // 方法②：用官方 SDK @vercel/global-config（动态从 CDN 引入，演示“标准用法”）
+  // 方法②：用官方 SDK @vercel/global-config（动态从 CDN 引入，演示官方 README 标准用法）
+  //   官方 API：createClient(conn).get(key) / .has(key) / .getAll() / .getAll([keys])
+  //   默认从 process.env.GLOBAL_CONFIG（回退 EDGE_CONFIG）读取；浏览器无 process.env，故用 createClient(conn)
+  //   默认 no-store（每次动态拉取，保证最新）；要静态缓存可 createClient(conn,{cache:'force-cache'})
+  //   返回值不可变，修改前需用 clone()；无效 token / 网络错误会抛异常
   $('btnSdk').addEventListener('click', async () => {
     const conn = getConn(); if (!conn) return
     try {
-      const mod = await import('https://esm.sh/@vercel/global-config@latest')
+      const mod = await import('https://esm.sh/@vercel/global-config@1.5.1')
       const client = mod.createClient(conn)
-      const data = await client.getAll()
-      render(data, 'SDK')
+      const greeting = await client.get('greeting')        // 读单值（README 主示例）
+      const exists = await client.has('greeting')           // 是否存在该 key
+      const data = await client.getAll()                    // 全量 dump
+      render(data, 'SDK', `get('greeting')=${JSON.stringify(greeting)} · has('greeting')=${exists}`)
     } catch (e) { showError('SDK', e) }
   })
 </script>
