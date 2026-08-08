@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MongoDB 连接测试（Vercel Function）</title>
+<style>
+  :root{ --bg:#F6F4EF; --card:#FFFDF9; --text:#3A3A3A; --text2:#7A7A7A; --primary:#00A35C; --ok:#2E9D5A; --danger:#D65D5D; --line:#E3DDD2; --shadow:0 6px 24px rgba(0,0,0,.08) }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+    background:linear-gradient(180deg,var(--bg),#EDE9E0);color:var(--text);min-height:100vh;padding:24px 16px;line-height:1.6}
+  .wrap{max-width:800px;margin:0 auto}
+  h1{font-size:22px;margin-bottom:4px}
+  .sub{font-size:13px;color:var(--text2);margin-bottom:18px}
+  .card{background:var(--card);border-radius:18px;box-shadow:var(--shadow);padding:18px;margin-bottom:16px}
+  label{display:block;font-size:14px;font-weight:700;margin-bottom:8px}
+  input{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:12px;font-size:14px;color:var(--text);background:#fff}
+  input::placeholder{color:#bbb}
+  .btns{display:flex;gap:12px;margin-top:14px;flex-wrap:wrap}
+  button{padding:11px 18px;border-radius:14px;font-size:15px;font-weight:700;border:none;cursor:pointer}
+  .btn-primary{background:linear-gradient(135deg,var(--primary),#00C878);color:#fff}
+  .btn-ghost{background:#EDE9E0;color:var(--text)}
+  button:active{transform:scale(.97)}
+  .hint{font-size:12px;color:var(--text2);margin-top:10px;line-height:1.7}
+  .hint code{background:#E8E3D8;padding:1px 6px;border-radius:6px}
+  .status{font-size:14px;font-weight:700;margin-bottom:12px;padding:10px 14px;border-radius:12px}
+  .status.ok{background:#E0F5E9;color:#1F7A44}
+  .status.err{background:#FBE8E8;color:#A03030}
+  .db{margin-bottom:14px;padding:14px;border:1px solid var(--line);border-radius:14px;background:#fff}
+  .db h3{font-size:16px;color:var(--primary);margin-bottom:6px}
+  .db-meta{font-size:12px;color:var(--text2);margin-bottom:10px}
+  .coll{font-size:13px;padding:5px 10px;background:#F4F1EA;border-radius:8px;margin:4px 4px 0 0;display:inline-block}
+  .empty{color:var(--text2);font-size:14px;padding:30px 0;text-align:center}
+  details{margin-top:14px}
+  summary{cursor:pointer;font-size:13px;font-weight:700;color:var(--primary)}
+  details pre{background:#F4F1EA;color:#3A3A3A;padding:12px;border-radius:12px;margin-top:10px;overflow:auto;font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🗄️ MongoDB 连接测试</h1>
+  <div class="sub">通过 Vercel Serverless Function 读取数据库和集合；连接字符串不会暴露到前端</div>
+
+  <div class="card">
+    <label for="apiUrl">API 地址</label>
+    <input id="apiUrl" type="url" value="/api/mongo-test" placeholder="/api/mongo-test" />
+    <div class="btns">
+      <button class="btn-primary" id="btnFetch">读取数据库和集合</button>
+      <button class="btn-ghost" id="btnLocal">本地脚本方式说明</button>
+    </div>
+    <div class="hint">
+      在 Vercel 部署后默认地址就是 <code>/api/mongo-test</code>。<br>
+      如果你把 HTML 单独部署到其它地方，可改成完整地址，如 <code>https://sleep-story.vercel.app/api/mongo-test</code>。<br>
+      ⚠️ 这个页面本身不处理 MongoDB 连接字符串；凭据由 Vercel Function 从环境变量读取，不会泄露到浏览器。
+    </div>
+  </div>
+
+  <div class="card" id="resultBox" style="display:none">
+    <div id="status" class="status"></div>
+    <div id="databases"></div>
+  </div>
+
+  <div class="card">
+    <div class="empty" id="placeholder">点击上方按钮后，这里会列出所有数据库和每个库里的集合。</div>
+    <details id="localHelp" style="display:none">
+      <summary>本地测试脚本用法</summary>
+      <pre># 1) 确认 Vercel CLI 已登录并已 link 项目
+vercel env pull
+
+# 2) 运行本地脚本
+node scripts/mongo-test.mjs
+
+# 或一次性指定 URI
+MONGODB_URI="你的连接字符串" node scripts/mongo-test.mjs</pre>
+    </details>
+  </div>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id)
+
+  function render({ ok, databases, error }) {
+    $('resultBox').style.display = 'block'
+    $('placeholder').style.display = 'none'
+    $('localHelp').style.display = 'none'
+
+    if (!ok) {
+      $('status').className = 'status err'
+      $('status').textContent = '❌ 请求失败：' + (error || '未知错误')
+      $('databases').innerHTML = ''
+      return
+    }
+
+    $('status').className = 'status ok'
+    $('status').textContent = `✅ 连接成功，共 ${databases.length} 个数据库`
+
+    if (!databases.length) {
+      $('databases').innerHTML = '<div style="color:var(--text2);font-size:14px;">暂无数据库</div>'
+      return
+    }
+
+    $('databases').innerHTML = databases.map(db => `
+      <div class="db">
+        <h3>📁 ${db.name}</h3>
+        <div class="db-meta">sizeOnDisk: ${db.sizeOnDisk || 0} bytes · empty: ${db.empty}</div>
+        ${db.collections.length
+          ? db.collections.map(c => `<span class="coll">${c.name}</span>`).join('')
+          : '<div style="font-size:13px;color:var(--text2);">无集合</div>'}
+      </div>
+    `).join('')
+  }
+
+  $('btnFetch').addEventListener('click', async () => {
+    const url = $('apiUrl').value.trim() || '/api/mongo-test'
+    $('placeholder').style.display = 'none'
+    $('localHelp').style.display = 'none'
+    $('resultBox').style.display = 'block'
+    $('status').className = 'status'
+    $('status').textContent = '⏳ 请求中...'
+    $('databases').innerHTML = ''
+
+    try {
+      const res = await fetch(url, { cache: 'no-store' })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || `HTTP ${res.status}`)
+      render({ ok: true, databases: json.databases })
+    } catch (e) {
+      render({ ok: false, error: e.message })
+    }
+  })
+
+  $('btnLocal').addEventListener('click', () => {
+    $('placeholder').style.display = 'none'
+    $('localHelp').style.display = 'block'
+  })
+</script>
+</body>
+</html>
